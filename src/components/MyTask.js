@@ -29,6 +29,7 @@ function MyTask(props) {
         });
       }
     },
+    // eslint-disable-next-line
     [props.match.params.taskId]
   );
 

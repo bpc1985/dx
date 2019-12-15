@@ -6,12 +6,14 @@ export default function Todo({ todo, details, index, seeDetail, completeTodo, un
     return details && parseInt(details.id) === index;
   };
 
+  const title = todo.details ? <div>{todo.text}</div> : <li>{todo.text}</li>;
+
   return (
     <div
       className="todo"
       style={{ textDecoration: todo.isCompleted ? "line-through" : "none" }}
     >
-      <div>{todo.text}</div>
+      {title}
       { checkDetail() &&
         <TodoDetail
           todos={details.todos}
