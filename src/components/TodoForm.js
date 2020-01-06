@@ -1,26 +1,37 @@
 import React, { useState } from 'react';
+import { StyledInput, StyledButton } from './TodoForm.styled';
 
-export default function TodoForm({ addTodo }) {
-  const [value, setValue] = useState("");
+const TodoForm = ({ addTodo }) => {
+  const [task, setTask] = useState({
+    value: '',
+    parentId: ''
+  });
 
   const handleSubmit = e => {
     e.preventDefault();
-    if (!value) return;
-    addTodo(value);
-    setValue("");
+    if (!task.value) return;
+    addTodo(task);
+    setTask({ value: '', parentId: '' });
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <input
+      <StyledInput
         type="text"
-        className="input"
-        value={value}
-        placeholder="Add new task"
-        onChange={e => setValue(e.target.value)}
+        value={task.value}
+        placeholder="Add New Task"
+        onChange={e => setTask({...task, value: e.target.value})}
       />
+      <StyledInput
+        type="text"
+        value={task.parentId}
+        placeholder="Add Parent Task Key"
+        onChange={e => setTask({...task, parentId: e.target.value})}
+      />
+      <StyledButton>Submit</StyledButton>
     </form>
   );
 }
 
+export default TodoForm;
 

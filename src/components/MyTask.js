@@ -1,106 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { every, find } from 'lodash';
-import { data } from './mockData';
+import React, { useReducer, useEffect } from 'react';
+import tree from './Tree';
 import Todo from './Todo';
 import TodoForm from './TodoForm';
+import { StyledApp, StyledTodoList, StyledTodo } from './MyTask.styled';
 
-import "./MyTask.css";
+const MyTask = (props) => {
+  const reducer = (state, newState) => [...newState];
+  const [todos, setTodos] = useReducer(reducer, tree.root.children);
 
-function MyTask(props) {
-  const savedState = JSON.parse(localStorage.getItem(`savedTodos`));
-  const initialData = savedState ? savedState : data;
+  useEffect(() => {
+    localStorage.setItem(`savedTodos`, JSON.stringify(todos));
+  }, [todos]);
 
-  const [todos, setTodos] = useState(initialData);
-  const [details, setDetails] = useState();
-
-  useEffect(
-    () => {
-      localStorage.setItem(`savedTodos`, JSON.stringify(todos));
-    },
-    [todos]
-  );
-
-  useEffect(
-    () => {
-      if (props.match.params.taskId) {
-        setDetails({
-          id: props.match.params.taskId,
-          todos: todos[props.match.params.taskId].details
-        });
-      }
-    },
+  useEffect(() => {
+    if (props.match.params.taskId) {
+      const taskId = props.match.params.taskId;
+      tree.showOnlyNode(taskId);
+      setTodos(tree.root.children);
+    }
     // eslint-disable-next-line
-    [props.match.params.taskId]
+    }, [props.match.params.taskId]
   );
 
-  const seeDetail = (index) => {
-    props.history.push({pathname: `/${index}`});
+  const addTodo = todo => {
+    const newTodo = {
+      id: `t${tree.root.count + 1}`,
+      text: todo.value,
+      isCompleted: false
+    };
+    tree.addNode(newTodo, todo.parentId);
+    setTodos(tree.root.children);
   };
 
-  const completeTodo = (todo, index) => {
-    if (todo.details) {
-      const newTodos = [...todos];
-      newTodos[index].isCompleted = true;
-      newTodos[index].details.forEach(tdo => tdo.isCompleted = true);
-      setTodos(newTodos);
-    } else {
-      const newTodos = [...todos];
-      newTodos[index].details.forEach(tdo => {
-        if (tdo.text === todo.text) {
-          tdo.isCompleted = true;
-        }
-      });
-      // if all child todos are completed, parent todo should be completed also
-      if (every(newTodos[index].details, { isCompleted: true })) {
-        newTodos[index].isCompleted = true;
-      }
-      setTodos(newTodos);
-    }
-  };
-
-  const undoTodo = (todo, index) => {
-    if (todo.details) {
-      const newTodos = [...todos];
-      newTodos[index].isCompleted = false;
-      newTodos[index].details.forEach(tdo => tdo.isCompleted = false);
-      setTodos(newTodos);
-    } else {
-      const newTodos = [...todos];
-      newTodos[index].details.forEach(tdo => {
-        if (tdo.text === todo.text) {
-          tdo.isCompleted = false;
-        }
-      });
-      // if only one child todo are undone, parent todo should be undone also
-      if (find(newTodos[index].details, { isCompleted: false })) {
-        newTodos[index].isCompleted = false;
-      }
-      setTodos(newTodos);
-    }
+  const showHideTodo = todo => {
+    tree.showHideNode(todo);
+    setTodos(tree.root.children);
   }
 
-  const addTodo = text => {
-    const newTodos = [...todos, { text, details: [], isCompleted: false  }];
-    setTodos(newTodos);
-  };
+  const toggleTodo = todo => {
+    tree.toggleNode(todo, !todo.isCompleted);
+    setTodos(tree.root.children);
+  }
+
+  const removeTodo = todo => {
+    tree.removeNode(todo);
+    setTodos(tree.root.children);
+  }
 
   return (
-    <div className="app">
-      <div className="todo-list">
-        {todos.map((todo, index) => (
-          <Todo
-            key={index}
-            index={index}
-            todo={todo}
-            details={details}
-            seeDetail={seeDetail}
-            completeTodo={completeTodo}
-            undoTodo={undoTodo}
-          />
+    <StyledApp>
+      <StyledTodoList>
+        {todos.map(todo => (
+          <StyledTodo key={todo.id}>
+            <Todo
+              todo={todo}
+              onShowHide={showHideTodo}
+              onToggle={toggleTodo}
+              onRemove={removeTodo}
+            />
+          </StyledTodo>
         ))}
         <TodoForm addTodo={addTodo} />
-      </div>
-    </div>
+      </StyledTodoList>
+    </StyledApp>
   );
 }
 
