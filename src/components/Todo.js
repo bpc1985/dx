@@ -1,8 +1,10 @@
 import React from 'react';
 import { isEmpty } from 'lodash';
 import { StyledTreeNode, StyledButton } from './Todo.styled';
+import graph from '../graph';
 
-const Todo = ({ todo, level = 0, onShowHide, onToggle, onRemove }) => {
+const Todo = ({ todoId, level = 0, onShowHide, onToggle, onRemove }) => {
+  const todo = graph.get(todoId);
   const displayLabel = () => todo.isOpen ? 'Collapse' : 'Expand';
   return (
     <React.Fragment>
@@ -12,19 +14,20 @@ const Todo = ({ todo, level = 0, onShowHide, onToggle, onRemove }) => {
         </div>
         <div>
           { !isEmpty(todo.children)
-              && <StyledButton color="blue" onClick={() => onShowHide(todo)}>{(displayLabel())}</StyledButton> }
+              && <StyledButton color="blue" onClick={() => onShowHide(todoId)}>{(displayLabel())}</StyledButton> }
           { !todo.isCompleted
-              && <StyledButton color="green" onClick={() => onToggle(todo)}>Done</StyledButton> }
+              && <StyledButton color="green" onClick={() => onToggle(todoId)}>Done</StyledButton> }
           { todo.isCompleted
-              && <StyledButton color="orange" onClick={() => onToggle(todo)}>Undo</StyledButton> }
-          <StyledButton color="red" onClick={() => onRemove(todo)}>Delete</StyledButton>
+              && <StyledButton color="orange" onClick={() => onToggle(todoId)}>Undo</StyledButton> }
+          <StyledButton color="red" onClick={() => onRemove(todoId)}>Delete</StyledButton>
         </div>
       </StyledTreeNode>
 
-      { !isEmpty(todo.children) && todo.isOpen && todo.children.map(childTodo => (
+      { !isEmpty(todo.children) && todo.isOpen
+          && Object.keys(todo.children).map(childTodoId => (
         <Todo
-          key={childTodo.id}
-          todo={childTodo}
+          key={childTodoId}
+          todoId={childTodoId}
           level={level + 1}
           onShowHide={onShowHide}
           onToggle={onToggle}
